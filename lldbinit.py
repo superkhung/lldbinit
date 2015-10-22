@@ -186,7 +186,7 @@ def dump_stacks():
             output("%s%s" % (YELLOW, data))
 
         if opcode2 != opcode1:
-            if opcode2.find("[") != -1:
+            if opcode2.find("[") != -1 and opcode2.find("]") != -1:
                 data = dbgcall("memory read '*(int **)$%s'" % opcode2[1:-1])
                 if data == "": data = "0x0\n"
                 output("%s%s\n" % (GREEN, opcode2))
