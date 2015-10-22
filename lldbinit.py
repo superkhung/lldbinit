@@ -232,7 +232,7 @@ def HandleHookStopOnTarget(debugger, command, result, dict):
     output("%sBase: %s%s\n" % (GREEN, CYAN, base))
     output("%sPath: %s%s\n" % (GREEN, CYAN, path))
 
-    dump_stacks()
+    if is_arm(): dump_stacks()
 
     output(breakline("asm"))
     output(dbgcall("disassemble -p --count=10"))
