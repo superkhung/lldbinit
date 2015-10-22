@@ -15,4 +15,4 @@ echo "Done!"
 * supported iOS arm64
 
 ##Screeshot
-![](http://i.imgur.com/3eoRyiy.png)
+![](http://i.imgur.com/3tVmNWO.png)
