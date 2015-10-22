@@ -1,3 +1,8 @@
+"""
+superkhung@vnsecurity.net
+Basic lldbinit to dump registers and info
+Funtion stepo copied from deroko's version (https://github.com/deroko/lldbinit)
+"""
 try:
     import lldb
 except:
