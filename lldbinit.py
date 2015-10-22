@@ -171,50 +171,32 @@ def get_mod_info():
 
 
 def dump_stacks():
+    ignore_opcodes = {"bl", "blx", "b", "b.lt", "b.hs", "b.eq", "b.le", "b.ne"}
     data = dbgcall("disassemble -p --count=1")
-    try:
-        asm = data.split("\n")[1].split(":")[1].split("    ")
-    except:
-        return
+    asm = data.split("\n")[1].split(":")[1].split()
 
-    try:
-        #if "bl" or "blx" or "call" in asm: return
-        opcode = asm[1].split(",", 1)
+    if len(asm) > 2:
+        if asm[0] in ignore_opcodes: return
+        opcode1 = asm[1].strip(",")
+        opcode2 = asm[2].strip(",")
+        if opcode1[0].isalpha:
+            data = dbgcall("memory read $%s" % opcode1)
+            if data == "": data = "0x0\n"
+            output("%s%s\n" % (GREEN, opcode1))
+            output("%s%s" % (YELLOW, data))
 
-        global oplist
-        for i in range(len(opcode)):
-            op = opcode[i].strip(" ")
-            if len(op) > 1:
-                first = op.find("[")
-                last = op.find("]")
-                if first != -1 or last != -1:
-                    subop = op[first+1:last]
-                    subop = subop.split()
-                    if len(subop) > 1: continue
-                        #print subop
-                        #addr = int(dbgcall("memory read $%s" % (subop)).split()[2], 16)
-                        #oplist[i] = [op, dbgcall("memory read '*(int **)$%s'" % (op[1:-1]))]
-                    else:
-                        oplist[i] = ["[%s]".upper() % subop[0], dbgcall("memory read '*(int **)$%s'" % (subop[0]))]
-                    continue
-            if op[0].isalpha():
-                oplist[i] = [op.upper(), dbgcall("memory read $%s" % (op))]
+        if opcode2 != opcode1:
+            if opcode2.find("[") != -1:
+                data = dbgcall("memory read '*(int **)$%s'" % opcode2[1:-1])
+                if data == "": data = "0x0\n"
+                output("%s%s\n" % (GREEN, opcode2))
+                output("%s%s" % (YELLOW, data))
+            if opcode2[0].isalpha():
+                data = dbgcall("memory read $%s" % opcode2)
+                if data == "": data = "0x0\n"
+                output("%s%s\n" % (GREEN, opcode2))
+                output("%s%s" % (YELLOW, data))
 
-        printed = ""
-
-        for op in oplist:
-            if op[0] != "":
-                if op[1] == "": op[1] = "0x0\n"
-                if op[0] == printed: continue
-                output("%s%s\n" % (GREEN, op[0]))
-                output("%s%s" % (YELLOW, op[1]))
-                output(NONE)
-                printed = op[0]
-                oplist = [["", ""]] * 4
-
-    except Exception, e:
-        print str(e)
-        return
 
 def HandleHookStopOnTarget(debugger, command, result, dict):
     if os.getenv('PATH').startswith('/Applications/Xcode.app'):
@@ -244,13 +226,12 @@ def HandleHookStopOnTarget(debugger, command, result, dict):
 
     output(breakline("info"))
     target = lldb.debugger.GetSelectedTarget()
-    mod = target.GetModuleAtIndex(0)
-    sec = mod.GetSectionAtIndex(0)
-    loadaddr = sec.GetLoadAddress(target)
+    mod = "%s" % target.GetModuleAtIndex(0)
+    path = mod.split()[1].split("(")[0]
+    base = mod.split()[1].split("(")[1].strip(")")
+    output("%sBase: %s%s\n" % (GREEN, CYAN, base))
+    output("%sPath: %s%s\n" % (GREEN, CYAN, path))
 
-    if loadaddr == lldb.LLDB_INVALID_ADDRESS: loadaddr = 0x0
-
-    output("%sLoaded Address: %s\n" % (CYAN, (loadaddr)))
     dump_stacks()
 
     output(breakline("asm"))
