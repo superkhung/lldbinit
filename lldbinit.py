@@ -171,14 +171,18 @@ def get_mod_info():
 
 
 def dump_stacks():
-    ignore_opcodes = {"bl", "blx", "b", "b.lt", "b.hs", "b.eq", "b.le", "b.ne"}
+    ignore_opcodes = {"bl", "blx", "b", "b.lt", "b.hs", "b.eq", "b.le", "b.ne", "b.lo"}
     data = dbgcall("disassemble -p --count=1")
     asm = data.split("\n")[1].split(":")[1].split()
 
     if len(asm) > 2:
         if asm[0] in ignore_opcodes: return
+        #print "asm ", asm
         opcode1 = asm[1].strip(",")
         opcode2 = asm[2].strip(",")
+        opcode3 = ""
+        if len(asm) > 3:
+            opcode3 = asm[3]
         if opcode1[0].isalpha:
             data = dbgcall("memory read $%s" % opcode1)
             if data == "": data = "0x0\n"
@@ -190,6 +194,14 @@ def dump_stacks():
                 data = dbgcall("memory read '*(int **)$%s'" % opcode2[1:-1])
                 if data == "": data = "0x0\n"
                 output("%s%s\n" % (GREEN, opcode2))
+                output("%s%s" % (YELLOW, data))
+            if opcode3 and opcode2.find("[") != -1 and opcode2.find("]") == -1:
+                data = dbgcall("register read $%s" % (opcode2[1:]))
+                addr = int(data.split()[2], 16)
+                addr = int(opcode3[1:-1]) + addr
+                data = dbgcall("memory read %s" % hex(addr))
+                if data == "": data = "0x0\n"
+                output("%s%s, %s\n" % (GREEN, opcode2, opcode3))
                 output("%s%s" % (YELLOW, data))
             if opcode2[0].isalpha():
                 data = dbgcall("memory read $%s" % opcode2)
