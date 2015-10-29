@@ -181,8 +181,11 @@ def dump_stacks():
         opcode1 = asm[1].strip(",")
         opcode2 = asm[2].strip(",")
         opcode3 = ""
+        opcode4 = ""
         if len(asm) > 3:
-            opcode3 = asm[3]
+            opcode3 = asm[3].strip(",")
+        if len(asm) > 4:
+            opcode4 = asm[4]
         if opcode1[0].isalpha:
             data = dbgcall("memory read $%s" % opcode1)
             if data == "": data = "0x0\n"
@@ -207,6 +210,19 @@ def dump_stacks():
                 data = dbgcall("memory read $%s" % opcode2)
                 if data == "": data = "0x0\n"
                 output("%s%s\n" % (GREEN, opcode2))
+                output("%s%s" % (YELLOW, data))
+            if opcode3 and opcode3.find("[") != -1 and opcode3.find("]") != -1:
+                data = dbgcall("memory read '*(int **)$%s'" % opcode3[1:-1])
+                if data == "": data = "0x0\n"
+                output("%s%s\n" % (GREEN, opcode3))
+                output("%s%s" % (YELLOW, data))
+            if opcode4 and opcode3.find("[") != -1 and opcode3.find("]") == -1:
+                data = dbgcall("register read $%s" % (opcode3[1:]))
+                addr = int(data.split()[2], 16)
+                addr = int(opcode4[1:-1]) + addr
+                data = dbgcall("memory read %s" % hex(addr))
+                if data == "": data = "0x0\n"
+                output("%s%s, %s\n" % (GREEN, opcode3, opcode4))
                 output("%s%s" % (YELLOW, data))
 
 
