@@ -14,5 +14,5 @@ echo "Done!"
 * some info dump frame
 * supported iOS arm64
 
-##Screeshot
+##Screenshot
 ![](http://i.imgur.com/3tVmNWO.png)
