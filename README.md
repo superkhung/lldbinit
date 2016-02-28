@@ -3,7 +3,7 @@ Init script for lldb
 
 ##Install: 
 ```
-git clone https://github.com/superkhung/lldbinit ~/lldb
+git clone https://github.com/superkhung/lldbinit ~/.lldb
 echo "command script import ~/.lldb/lldbinit.py" >> ~/.lldbinit
 echo "Done!"
 ```
